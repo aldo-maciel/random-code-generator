@@ -1,0 +1,31 @@
+@import "~bootstrap/scss/bootstrap";
+
+$background-color: #282c34;
+.app {
+    text-align: center;
+}
+
+.app-logo {
+    height: 40vmin;
+}
+
+.app-body {
+    background-color: $background-color;
+    display: flex;
+    flex-direction: column;
+    font-size: calc(10px + 2vmin);
+    min-height: 100vh;
+
+    .table tr {
+        $table-color: $gray-500;
+        color: $table-color;
+
+        &:hover {
+            color: $table-color;
+        }
+    }
+}
+
+.app-link {
+    color: #09d3ac;
+}
