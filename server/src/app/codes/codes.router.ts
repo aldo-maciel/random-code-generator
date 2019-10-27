@@ -17,7 +17,7 @@ export class CodesRouter {
 
     private createRoutes() {
         this.router
-            .get(`${ this.path }/:pagination`, this.ctrl.findAll)
+            .get(`${ this.path }`, this.ctrl.findAll)
             .put(`${ this.path }/:id`, this.ctrl.update)
             .post(this.path, this.ctrl.create);
     }

@@ -1,34 +1,31 @@
-import React from 'react';
+import './app.scss';
+import _ from 'lodash';
+import toastr from 'toastr';
+import React, { FormEvent } from 'react';
 import moment from 'moment';
 import Swal from 'sweetalert2';
-import './app.scss';
+import NumberFormat from 'react-number-format';
+import { AxiosResponse } from 'axios';
 import { AppService } from './app.service';
 import { Code } from './code';
 import { StatusEnum } from './status.enum';
-import { AxiosResponse } from 'axios';
+import { Paginate, Pagination } from './paginate/paginate';
 
 export class App extends React.Component {
     private service: AppService = new AppService();
-    private pagination = { start: 0, numOfPages: 0, totalRecords: 0, step: 10, filter: {} };
-    private filter: string = '';
-    public state = { rows: Array<Code>(), value: 0, start: 0, totalRecords: 0 };
+    private totalRecords: number = 0;
+    private pagination!: Pagination;
+    public state = { rows: Array<Code>(), value: '', filter: '' };
 
-    componentDidMount() {
-        this.find();
-    }
+    async find() {
+        try {
+            const value: AxiosResponse<{ count: number, data: Code[] }> = await this.service.findAll(this.pagination, this.state.filter);
 
-    find(value: string = '') {
-        this.pagination.filter = { text: value };
-        this.service.findAll(this.pagination)
-            .then((value: AxiosResponse<{ count: number, data: Code[] }>) => {
-                this.pagination.totalRecords = value.data.count;
-                this.pagination.numOfPages = Math.ceil(value.data.count / this.pagination.step);
-                this.setState({
-                    rows: value.data.data,
-                    start: this.pagination.start,
-                    totalRecords: this.pagination.totalRecords
-                });
-            });
+            this.totalRecords = value.data.count;
+            this.setState({ rows: value.data.data });
+        } catch (error) {
+            this._onError(error);
+        }
     }
 
     moneyMask(value: number = 0) {
@@ -58,111 +55,119 @@ export class App extends React.Component {
         </div>;
     }
 
-    useCode(code: Code) {
-        Swal
-            .fire({
-                title: 'Confirmar',
-                text: `Você deseja realmente utilizar o código '${ code.code }'?`,
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sim',
-                cancelButtonText: 'Não'
-            })
-            .then(async ({ value }) => {
-                if (value) {
-                    await this.service.useCode(code._id);
-                    this.find();
-                }
-            });
+    async useCode(code: Code) {
+        const { value } = await Swal.fire({
+            title: 'Confirmar',
+            text: `Você deseja realmente utilizar o código '${ code.code }'?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim',
+            cancelButtonText: 'Não'
+        });
+
+        if (value) {
+            this._request(this.service.useCode  , code._id);
+        }
     }
 
-    cancelCode(code: Code) {
-        Swal
-            .fire({
-                title: 'Confirmar',
-                text: `Você deseja realmente cancelar o código '${ code.code }'?`,
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sim',
-                cancelButtonText: 'Não'
-            })
-            .then(async ({ value }) => {
-                if (value) {
-                    await this.service.cancelCode(code._id);
-                    this.find(this.filter);
-                }
-            });
+    async cancelCode(code: Code) {
+        const { value } = await Swal.fire({
+            title: 'Confirmar',
+            text: `Você deseja realmente cancelar o código '${ code.code }'?`,
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sim',
+            cancelButtonText: 'Não'
+        });
+
+        if (value) {
+            this._request(this.service.cancelCode, code._id);
+        }
     }
 
-    create() {
+    async create($event: FormEvent) {
+        $event.preventDefault();
+        const value = parseFloat(this.state.value);
+        if (value) {
+            this._request(this.service.create, value);
+            this.setState({ value: '' });
+        }
+    }
+
+    async _request(event: Function, param: any) {
         try {
-            if (this.state.value) {
-                this.service
-                    .create(this.state.value)
-                    .then(() => {
-                        Swal
-                            .fire({
-                                title: 'Gerado',
-                                text: 'Registro gerado com sucesso!',
-                                type: 'success'
-                            })
-                            .then(() => {
-                                this.setState({ value: 0 });
-                                this.find(this.filter);
-                            });
-                    });
-            }
+            await event(param);
+            this.find();
+            this._onSuccess();
         } catch (error) {
-            console.error(error);
+            this._onError(error);
         }
     }
 
-    paginate(option: number) {
-        switch (option) {
-            case 1: {
-                if ((this.pagination.start + this.pagination.step) > this.pagination.totalRecords) return;
-                this.pagination.start += this.pagination.step;
-                break;
-            }
-            case 2: {
-                if (this.pagination.start <= 0) return;
-                this.pagination.start -= this.pagination.step;
-                break;
-            }
-            case 3: {
-                this.pagination.start = Math.ceil(this.pagination.totalRecords / this.pagination.step) * this.pagination.step;
-                if (this.pagination.start > this.pagination.totalRecords) {
-                    this.pagination.start -= this.pagination.step;
-                }
-                break;
-            }
-            default: {
-                this.pagination.start = 0;
-            }
-        }
-        this.find(this.filter);
+    _onSuccess() {
+        toastr.success('Operação realizada com sucesso!', 'Sucesso');
+    }
+
+    _onError(error: Error) {
+        console.error(error);
+        toastr.error('Ocorreu um erro na requisição!', 'Erro');
+    }
+
+    onChangeValue(values: any) {
+        const { floatValue } = values;
+        this.setState({ value: floatValue });
+    }
+
+    onChangePaginate(pagination: Pagination) {
+        this.pagination = pagination;
+        this.find();
     }
 
     render() {
         return (<div className="app card">
-                <header className="card-header">
-                    <h3>Gerador</h3>
-                </header>
                 <div className="app-body table-responsive card-body">
-                    <div className="app-body-actions d-flex justify-content-between">
-                        <div>
-                            <input onChange={ event => {
-                                this.filter = event.target.value;
-                                this.find(event.target.value);
-                            } } className="form-control-sm" type="text"
-                                   placeholder="Pesquise aqui..."/>
-                        </div>
-                        <div>
-                            <input onChange={ event => this.setState({ value: parseFloat(event.target.value) }) }
-                                   className="form-control-sm" type="text" placeholder="Digite um valor aqui..."/>
-                            <button className="btn btn-outline-success btn-sm" type="submit" onClick={ () => this.create() }>Gerar</button>
-                        </div>
+                    <div className="card-header text-white">
+                        <h3>Gerador</h3>
                     </div>
+                    <form className="form" onSubmit={ $event => this.create($event) } onReset={ () => {
+                        this.setState({ filter: '' });
+                        _.debounce(this.find.bind(this), 500)();
+                    } }>
+                        <div className="row">
+                            <div className="col-xl-4 col-sm-6 col-md-5 col-lg-4 form-group">
+                                <div className="input-group">
+                                    <input className="form-control"
+                                           type="text"
+                                           placeholder="Pesquise aqui..."
+                                           value={ this.state.filter }
+                                           onChange={ event => {
+                                               this.setState({ filter: event.target.value });
+                                               _.debounce(this.find.bind(this), 500)();
+                                           } }/>
+                                    <div className="input-group-append">
+                                        <button disabled={ !this.state.filter } className="btn btn-danger" type="reset">
+                                            <em className="fa fa-ban"/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-xl-4 col-sm-6 col-md-5 col-lg-4 offset-sm-0 offset-md-2 offset-xl-4 offset-lg-4 form-group">
+                                <div className="input-group">
+                                    <NumberFormat value={ this.state.value }
+                                                  thousandSeparator={ '.' }
+                                                  decimalSeparator={ ',' }
+                                                  prefix={ 'R$ ' }
+                                                  fixedDecimalScale={ true }
+                                                  decimalScale={ 2 }
+                                                  onValueChange={ values => this.onChangeValue(values) }
+                                                  className="form-control" type="text" placeholder="Digite um valor aqui..."/>
+                                    <div className="input-group-append">
+                                        <button disabled={ !this.state.value } className="btn btn-outline-success" type="submit">Gerar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                     <table className="table table-hover table-striped table-striped table-borderless">
                         <thead>
                             <tr>
@@ -174,17 +179,19 @@ export class App extends React.Component {
                             </tr>
                         </thead>
                         <tbody>
-                            { this.state.rows.map((code, index) => {
-                                return (
-                                    <tr key={ index }>
-                                        <td>{ moment(code.createdAt).format('lll') } </td>
-                                        <td>{ code.code }</td>
-                                        <td>{ this.moneyMask(code.value) }</td>
-                                        <td>{ this.getStatusIcon(code.status) }</td>
-                                        <td>{ this.getActionsIcons(code) }</td>
-                                    </tr>
-                                );
-                            }) }
+                            {
+                                this.state.rows.map(code => {
+                                    return (
+                                        <tr key={ code._id }>
+                                            <td>{ moment(code.createdAt).format('lll') } </td>
+                                            <td>{ code.code }</td>
+                                            <td>{ this.moneyMask(code.value) }</td>
+                                            <td>{ this.getStatusIcon(code.status) }</td>
+                                            <td>{ this.getActionsIcons(code) }</td>
+                                        </tr>
+                                    );
+                                })
+                            }
                             {
                                 this.state.rows.length === 0 &&
                                 <tr>
@@ -195,29 +202,9 @@ export class App extends React.Component {
                         <tfoot>
                             <tr>
                                 <td colSpan={ 5 }>
-                                    <div className="d-flex justify-content-between">
-                                        <div>Mostrando { !this.state.start ? this.state.rows.length > 0 ? 1 : 0 : this.state.start + 1 } até { (this.state.start + this.pagination.step) > this.state.totalRecords ? this.state.totalRecords : (this.state.start + this.pagination.step) } de { this.state.totalRecords } </div>
-                                        <div>
-                                            <button disabled={ this.pagination.start < this.pagination.step } onClick={ () => this.paginate(0) }
-                                                    className="btn btn-link" title="Primeira">
-                                                <em className="fa fa-angle-double-left fa-2x"/>
-                                            </button>
-                                            <button disabled={ this.pagination.start < this.pagination.step } onClick={ () => this.paginate(2) }
-                                                    className="btn btn-link" title="Anterior">
-                                                <em className="fa fa-angle-left fa-2x"/>
-                                            </button>
-                                            <button disabled={ this.pagination.totalRecords <= (this.pagination.step + this.pagination.start) }
-                                                    onClick={ () => this.paginate(1) }
-                                                    className="btn btn-link" title="Próxima">
-                                                <em className="fa fa-angle-right fa-2x"/>
-                                            </button>
-                                            <button disabled={ this.pagination.totalRecords <= (this.pagination.step + this.pagination.start) }
-                                                    onClick={ () => this.paginate(3) }
-                                                    className="btn btn-link" title="Última">
-                                                <em className="fa fa-angle-double-right fa-2x"/>
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <Paginate onChange={ (pagination: Pagination) => this.onChangePaginate(pagination) }
+                                              step={ 10 }
+                                              totalRecords={ this.totalRecords }/>
                                 </td>
                             </tr>
                         </tfoot>

@@ -1,11 +1,11 @@
-import * as bodyParser from 'body-parser';
-import * as express from 'express';
-import * as cors from 'cors';
+import express, { Application } from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
 import { RoutesMiddleware } from './config/app.config';
 import { MongoConfig } from './config/mongo.config';
 
 class App {
-    public app: express.Application;
+    public app: Application = express();
 
     constructor() {
         this.app = express();
@@ -14,8 +14,10 @@ class App {
 
     private async config(): Promise<any> {
         this.app.use(cors());
+
         this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: false }));
+        this.app.use(bodyParser.urlencoded({ extended: true }));
+        this.app.use(express.static(__dirname + './view'));
 
         await new MongoConfig().mongoSetup();
         new RoutesMiddleware().config(this.app);

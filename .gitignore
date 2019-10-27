@@ -4,3 +4,4 @@
 dist/*
 logs/*
 random-code-generator.iml
+build/

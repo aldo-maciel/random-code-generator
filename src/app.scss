@@ -1,7 +1,12 @@
-@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap";
+@import "~eva-icons/style/scss/eva-icons";
+@import "~font-awesome/scss/font-awesome";
+@import "~toastr";
+@import "~bootstrap/scss/variables";
 
 $background-color: #282c34;
 .app {
+    border: none;
     text-align: center;
 }
 
@@ -22,6 +27,11 @@ $background-color: #282c34;
 
         &:hover {
             color: $table-color;
+        }
+
+        & td {
+            padding: .5rem;
+            vertical-align: middle;
         }
     }
 }

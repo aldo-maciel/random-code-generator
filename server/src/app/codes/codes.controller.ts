@@ -13,8 +13,8 @@ export class CodesController {
      */
     public async findAll(req: Request, res: Response) {
         try {
-            const { pagination } = req.params;
-            res.json(await CodesController.service.findAll(JSON.parse(pagination)));
+            const params = req.query;
+            res.json(await CodesController.service.findAll(params));
         } catch (error) {
             handleError(res, error);
         }
@@ -30,7 +30,7 @@ export class CodesController {
         try {
             const { id } = req.params;
             const { status } = req.body;
-            await CodesController.service.update(id, { status });
+            await CodesController.service.update(id, status);
             res.json({ success: true });
         } catch (error) {
             handleError(res, error);
@@ -46,7 +46,7 @@ export class CodesController {
     public async create(req: Request, res: Response) {
         try {
             const { value } = req.body;
-            await CodesController.service.create({ value });
+            await CodesController.service.create(value);
             res.json({ success: true });
         } catch (error) {
             handleError(res, error);
