@@ -1,5 +1,4 @@
 import './app.scss';
-import _ from 'lodash';
 import toastr from 'toastr';
 import React, { FormEvent } from 'react';
 import moment from 'moment';
@@ -66,7 +65,7 @@ export class App extends React.Component {
         });
 
         if (value) {
-            this._request(this.service.useCode  , code._id);
+            this._request(this.service.useCode, code._id);
         }
     }
 
@@ -123,6 +122,19 @@ export class App extends React.Component {
         this.find();
     }
 
+    debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+        let timeout: NodeJS.Timeout;
+
+        return (...args: Parameters<F>): Promise<ReturnType<F>> =>
+            new Promise(resolve => {
+                if (timeout) {
+                    clearTimeout(timeout);
+                }
+
+                timeout = setTimeout(() => resolve(func(...args)), waitFor);
+            });
+    }
+
     render() {
         return (<div className="app card">
                 <div className="app-body table-responsive card-body">
@@ -131,7 +143,7 @@ export class App extends React.Component {
                     </div>
                     <form className="form" onSubmit={ $event => this.create($event) } onReset={ () => {
                         this.setState({ filter: '' });
-                        _.debounce(this.find.bind(this), 500)();
+                        this.debounce(this.find.bind(this), 500)();
                     } }>
                         <div className="row">
                             <div className="col-xl-4 col-sm-6 col-md-5 col-lg-4 form-group">
@@ -142,7 +154,7 @@ export class App extends React.Component {
                                            value={ this.state.filter }
                                            onChange={ event => {
                                                this.setState({ filter: event.target.value });
-                                               _.debounce(this.find.bind(this), 500)();
+                                               this.debounce(this.find.bind(this), 500)();
                                            } }/>
                                     <div className="input-group-append">
                                         <button disabled={ !this.state.filter } className="btn btn-danger" type="reset">
