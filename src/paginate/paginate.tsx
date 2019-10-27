@@ -1,6 +1,5 @@
 import React from 'react';
 
-
 export interface Pagination {
     start: number,
     step: number,
