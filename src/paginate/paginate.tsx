@@ -37,7 +37,7 @@ export class Paginate extends React.Component<Props> {
             }
             case 3: {
                 this.pagination.start = Math.ceil(this.props.totalRecords / this.props.step) * this.props.step;
-                if (this.pagination.start > this.props.totalRecords) {
+                if (this.pagination.start >= this.props.totalRecords) {
                     this.pagination.start -= this.props.step;
                 }
                 break;

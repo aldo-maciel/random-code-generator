@@ -6,6 +6,9 @@ import { Pagination } from './paginate/paginate';
 export class AppService {
 
     private static get URL() {
+        if ('production' === process.env.NODE_ENV) {
+            return '/api/codes';
+        }
         return 'http://localhost:3001/api/codes';
     }
 
