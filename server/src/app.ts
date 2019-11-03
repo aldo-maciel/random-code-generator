@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { RoutesMiddleware } from './config/app.config';
 import { MongoConfig } from './config/mongo.config';
+import logger from './shared/logger.service';
 
 class App {
     public app: Application = express();
@@ -17,7 +18,8 @@ class App {
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-        this.app.use(express.static(__dirname + './../../build'));
+        logger.debug(__dirname + './../../view/build');
+        this.app.use(express.static(__dirname + './../../view/build'));
 
         await new MongoConfig().mongoSetup();
         new RoutesMiddleware().config(this.app);
