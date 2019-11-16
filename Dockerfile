@@ -1,6 +1,6 @@
 FROM node:10.15.2
 MAINTAINER Aldo Bernardes Maciel
-ENV LOG_LEVEL=ALL
+
 # build server
 WORKDIR /app/server
 COPY /server/*.json /app/server/
