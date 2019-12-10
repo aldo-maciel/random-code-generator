@@ -1,9 +1,9 @@
 import axios, { AxiosResponse } from 'axios';
 import { Code } from './code';
-import { StatusEnum } from '../enums/status.enum';
-import { Pagination } from '../paginate/paginate.type';
+import { StatusEnum } from './status.enum';
+import { Pagination } from './paginate/paginate';
 
-export class CodesService {
+export class AppService {
 
     private static get URL() {
         if ('production' === process.env.NODE_ENV) {
@@ -17,18 +17,18 @@ export class CodesService {
             params.start = 0;
         }
         params.filter = { text };
-        return axios.get<{ count: number, data: Code[] }>(CodesService.URL, { params });
+        return axios.get<{ count: number, data: Code[] }>(AppService.URL, { params });
     }
 
     useCode(id: string): Promise<AxiosResponse<{ success: boolean }>> {
-        return axios.put(`${ CodesService.URL }/${ id }`, { status: StatusEnum.READY });
+        return axios.put(`${ AppService.URL }/${ id }`, { status: StatusEnum.READY });
     }
 
     cancelCode(id: string): Promise<AxiosResponse<{ success: boolean }>> {
-        return axios.put(`${ CodesService.URL }/${ id }`, { status: StatusEnum.CANCELLED });
+        return axios.put(`${ AppService.URL }/${ id }`, { status: StatusEnum.CANCELLED });
     }
 
     create(value: number): Promise<AxiosResponse<{ success: boolean }>> {
-        return axios.post(`${ CodesService.URL }`, { value });
+        return axios.post(`${ AppService.URL }`, { value });
     }
 }

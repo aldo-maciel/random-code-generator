@@ -3,5 +3,5 @@
 /.idea
 dist/*
 logs/*
-random-code-generator.iml
-build/
+/dynamic-app-server.iml
+docker-compose.yml

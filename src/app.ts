@@ -18,7 +18,8 @@ class App {
 
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
-        this.app.use(express.static(__dirname + './../../view/build'));
+        logger.info(process.cwd() + '\\view\\build');
+        this.app.use(express.static(process.cwd() + '\\view\\build'));
 
         await new MongoConfig().mongoSetup();
         new RoutesMiddleware().config(this.app);

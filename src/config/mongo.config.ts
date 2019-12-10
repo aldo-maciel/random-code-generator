@@ -11,7 +11,7 @@ export class MongoConfig {
 
             const connect = () => {
                 mongoose
-                    .connect(this.mongoUrl, {
+                    .connect(this.mongo.fullHost || this.mongoUrl, {
                         useNewUrlParser: true,
                         useFindAndModify: false,
                         useUnifiedTopology: true

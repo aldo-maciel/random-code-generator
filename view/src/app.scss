@@ -1,0 +1,41 @@
+@import "~bootstrap";
+@import "~eva-icons/style/scss/eva-icons";
+@import "~font-awesome/scss/font-awesome";
+@import "~toastr";
+@import "~bootstrap/scss/variables";
+
+$background-color: #282c34;
+.app {
+    border: none;
+    text-align: center;
+}
+
+.app-logo {
+    height: 40vmin;
+}
+
+.app-body {
+    background-color: $background-color;
+    display: flex;
+    flex-direction: column;
+    font-size: calc(10px + 2vmin);
+    min-height: 100vh;
+
+    .table tr {
+        $table-color: $gray-500;
+        color: $table-color;
+
+        &:hover {
+            color: $table-color;
+        }
+
+        & td {
+            padding: .5rem;
+            vertical-align: middle;
+        }
+    }
+}
+
+.app-link {
+    color: #09d3ac;
+}
